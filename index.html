@@ -151,6 +151,8 @@ body {
 }
 .cat-badge.wf { color: #86efac; border-color: #86efac; background: rgba(134,239,172,0.1); }
 .cat-badge.fn { color: #fca5a5; border-color: #fca5a5; background: rgba(252,165,165,0.1); }
+.cat-badge.tm { color: #fde68a; border-color: #fde68a; background: rgba(253,230,138,0.1); }
+.cat-badge.ns { color: #6ee7b7; border-color: #6ee7b7; background: rgba(110,231,183,0.1); }
 .ex-tag { font-size: 0.72rem; color: #555; }
 
 .q-sentence {
@@ -175,7 +177,11 @@ body {
   border: 2px solid rgba(255,255,255,0.18); border-radius: 12px;
   background: rgba(255,255,255,0.06); color: #fff;
   cursor: pointer; font-family: inherit; transition: all 0.15s;
+  text-align: center; line-height: 1.4;
 }
+/* long-text choices (sentence parts) */
+.choices.long-choices { flex-direction: column; }
+.choices.long-choices .choice-btn { min-width: unset; text-align: right; font-size: 0.88rem; font-weight: normal; }
 .choice-btn:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,0.14); border-color: #ffd200; }
 .choice-btn:disabled { cursor: default; }
 .choice-btn.correct { background: rgba(0,230,118,0.22); border-color: #00e676; color: #00e676; transform: scale(1.04); }
@@ -350,9 +356,11 @@ body {
 // QUESTIONS
 // ══════════════════════════════════════════════════════
 const CAT = {
-  S:{ label:'סוגי משפטים',      cls:'',   task:'מהו <span>סוג המשפט</span>?',        choices:['פשוט','מחובר','מורכב'] },
-  W:{ label:'שם פועל / שם פעולה', cls:'wf', task:'מהי <span>צורת המילה</span>?',      choices:['פועל','שם פועל','שם פעולה'] },
-  F:{ label:'תפקיד מילה',        cls:'fn', task:'מה <span>תפקיד המילה</span> במשפט?', choices:['פועל','שם פועל','שם תואר'] },
+  S:{ label:'סוגי משפטים',        cls:'',   task:'מהו <span>סוג המשפט</span>?',                choices:['פשוט','מחובר','מורכב'] },
+  W:{ label:'שם פועל / שם פעולה', cls:'wf', task:'מהי <span>צורת המילה</span>?',              choices:['פועל','שם פועל','שם פעולה'] },
+  F:{ label:'תפקיד מילה',          cls:'fn', task:'מה <span>תפקיד המילה</span> במשפט?',        choices:['פועל','שם פועל','שם תואר'] },
+  T:{ label:'תחימה',               cls:'tm', task:'',                                            choices:[] }, // task & choices per-question
+  N:{ label:'נושא ונשוא',          cls:'ns', task:'',                                            choices:[] }, // task & choices per-question
 };
 
 const ALL_Q = [
@@ -609,6 +617,141 @@ const ALL_Q = [
 
   {c:'F',ex:'תפקיד מילה',word:"חוזר",ctx:'במשפט: "התלמיד חוזר הביתה."',
    a:"פועל",exp:"<strong>פועל</strong>: 'חוזר' הוא נשוא המשפט — הפעולה שהתלמיד עושה."},
+
+  // ══ תחימה – מחובר (איבר א / איבר ב) ═══════════════════════════
+  {c:'T',ex:'תחימה',sentence:"דנה למדה קשה למבחן, אולם היא לא הצליחה לישון לפניו.",
+   task:'מהו <span>איבר א</span>?',
+   choices:['דנה למדה קשה למבחן','היא לא הצליחה לישון לפניו','אולם היא לא הצליחה לישון'],
+   a:'דנה למדה קשה למבחן',
+   exp:"<strong>איבר א</strong>: 'דנה למדה קשה למבחן' | <strong>איבר ב</strong>: 'היא לא הצליחה לישון לפניו' | מילת חיבור: <span class='hw'>אולם</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"הגשם ירד בחוזקה כל הלילה, ולכן הטיול השנתי בוטל.",
+   task:'מהו <span>איבר ב</span>?',
+   choices:['הגשם ירד בחוזקה כל הלילה','הטיול השנתי בוטל','ולכן הטיול השנתי בוטל'],
+   a:'הטיול השנתי בוטל',
+   exp:"<strong>איבר א</strong>: 'הגשם ירד בחוזקה כל הלילה' | <strong>איבר ב</strong>: 'הטיול השנתי בוטל' | מילת חיבור: <span class='hw'>ולכן</span>. שימו לב — מילת החיבור אינה חלק מהאיבר!"},
+
+  {c:'T',ex:'תחימה',sentence:"יוסי אוהב כדורגל, אבל אחיו הגדול מעדיף כדורסל.",
+   task:'מהו <span>איבר א</span>?',
+   choices:['יוסי אוהב כדורגל','אחיו הגדול מעדיף כדורסל','אבל אחיו הגדול מעדיף כדורסל'],
+   a:'יוסי אוהב כדורגל',
+   exp:"<strong>איבר א</strong>: 'יוסי אוהב כדורגל' | <strong>איבר ב</strong>: 'אחיו הגדול מעדיף כדורסל' | מילת חיבור: <span class='hw'>אבל</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"החקיקה הזו עוררה ביקורת קשה, למרות זאת הם קיבלו את החוק ללא מחאה.",
+   task:'מהו <span>איבר ב</span>?',
+   choices:['החקיקה הזו עוררה ביקורת קשה','הם קיבלו את החוק ללא מחאה','למרות זאת הם קיבלו את החוק'],
+   a:'הם קיבלו את החוק ללא מחאה',
+   exp:"<strong>איבר א</strong>: 'החקיקה הזו עוררה ביקורת קשה' | <strong>איבר ב</strong>: 'הם קיבלו את החוק ללא מחאה' | מילת חיבור: <span class='hw'>למרות זאת</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"חלק מהחברות הסירו חשבונות של צעירים, אולם רובן טרם התחילו בכך.",
+   task:'מהו <span>איבר א</span>?',
+   choices:['חלק מהחברות הסירו חשבונות של צעירים','רובן טרם התחילו בכך','אולם רובן טרם התחילו בכך'],
+   a:'חלק מהחברות הסירו חשבונות של צעירים',
+   exp:"<strong>איבר א</strong>: 'חלק מהחברות הסירו חשבונות של צעירים' | <strong>איבר ב</strong>: 'רובן טרם התחילו בכך' | מילת חיבור: <span class='hw'>אולם</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"ניסינו להגיע לאירוע בזמן, אך הפקק הארוך עיכב אותנו.",
+   task:'מהו <span>איבר ב</span>?',
+   choices:['ניסינו להגיע לאירוע בזמן','הפקק הארוך עיכב אותנו','אך הפקק הארוך עיכב אותנו'],
+   a:'הפקק הארוך עיכב אותנו',
+   exp:"<strong>איבר א</strong>: 'ניסינו להגיע לאירוע בזמן' | <strong>איבר ב</strong>: 'הפקק הארוך עיכב אותנו' | מילת חיבור: <span class='hw'>אך</span>."},
+
+  // ══ תחימה – מורכב (פסוקית עיקרית / תלויה) ══════════════════════
+  {c:'T',ex:'תחימה',sentence:"המורה אמרה כי המבחן יתקיים ביום חמישי הקרוב.",
+   task:'מהי <span>הפסוקית העיקרית</span>?',
+   choices:['המורה אמרה','המבחן יתקיים ביום חמישי הקרוב','המורה אמרה כי המבחן יתקיים'],
+   a:'המורה אמרה',
+   exp:"<strong>פסוקית עיקרית</strong>: 'המורה אמרה' | <strong>פסוקית תלויה</strong>: 'המבחן יתקיים ביום חמישי' | מילת שעבוד: <span class='hw'>כי</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"אם תלמד כל יום בצורה מסודרת, תצליח במבחן.",
+   task:'מהי <span>הפסוקית התלויה</span>?',
+   choices:['תצליח במבחן','תלמד כל יום בצורה מסודרת','אם תלמד כל יום'],
+   a:'תלמד כל יום בצורה מסודרת',
+   exp:"<strong>פסוקית עיקרית</strong>: 'תצליח במבחן' | <strong>פסוקית תלויה</strong>: 'תלמד כל יום בצורה מסודרת' | מילת שעבוד: <span class='hw'>אם</span>. שימו לב — מילת השעבוד אינה חלק מהפסוקית!"},
+
+  {c:'T',ex:'תחימה',sentence:"הם הכינו עוגה גדולה כדי שיוכלו לחגוג את יום ההולדת.",
+   task:'מהי <span>הפסוקית העיקרית</span>?',
+   choices:['הם הכינו עוגה גדולה','יוכלו לחגוג את יום ההולדת','הם הכינו עוגה כדי שיוכלו'],
+   a:'הם הכינו עוגה גדולה',
+   exp:"<strong>פסוקית עיקרית</strong>: 'הם הכינו עוגה גדולה' | <strong>פסוקית תלויה</strong>: 'יוכלו לחגוג את יום ההולדת' | מילת שעבוד: <span class='hw'>כדי ש</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"כאשר הצלצול נשמע, כולם יצאו להפסקה.",
+   task:'מהי <span>הפסוקית התלויה</span>?',
+   choices:['כולם יצאו להפסקה','הצלצול נשמע','כאשר הצלצול נשמע'],
+   a:'הצלצול נשמע',
+   exp:"<strong>פסוקית עיקרית</strong>: 'כולם יצאו להפסקה' | <strong>פסוקית תלויה</strong>: 'הצלצול נשמע' | מילת שעבוד: <span class='hw'>כאשר</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"אף שהיה קר מאוד בחוץ, הם לא לבשו מעיל.",
+   task:'מהי <span>הפסוקית התלויה</span>?',
+   choices:['הם לא לבשו מעיל','היה קר מאוד בחוץ','אף שהיה קר מאוד'],
+   a:'היה קר מאוד בחוץ',
+   exp:"<strong>פסוקית עיקרית</strong>: 'הם לא לבשו מעיל' | <strong>פסוקית תלויה</strong>: 'היה קר מאוד בחוץ' | מילת שעבוד: <span class='hw'>אף ש</span>."},
+
+  {c:'T',ex:'תחימה',sentence:"הילדה אמרה שהיא רוצה ללמוד לנגן בפסנתר.",
+   task:'מהי <span>הפסוקית התלויה</span>?',
+   choices:['הילדה אמרה','היא רוצה ללמוד לנגן בפסנתר','הילדה אמרה שהיא רוצה'],
+   a:'היא רוצה ללמוד לנגן בפסנתר',
+   exp:"<strong>פסוקית עיקרית</strong>: 'הילדה אמרה' | <strong>פסוקית תלויה</strong>: 'היא רוצה ללמוד לנגן בפסנתר' | מילת שעבוד: <span class='hw'>ש</span>."},
+
+  // ══ נושא ונשוא ═══════════════════════════════════════════════════
+  {c:'N',ex:'נושא ונשוא',sentence:"הכלב רץ מהר בפארק הקרוב לבית.",
+   task:'מה <span>הנושא</span> במשפט?',
+   choices:['הכלב','רץ','הפארק'],
+   a:'הכלב',
+   exp:"<strong>נושא</strong>: <em>הכלב</em> — מי שעושה את הפעולה. <strong>נשוא</strong>: <em>רץ</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"המורה הסבירה את החומר החדש בסבלנות רבה.",
+   task:'מה <span>הנשוא</span> במשפט?',
+   choices:['המורה','הסבירה','החומר החדש'],
+   a:'הסבירה',
+   exp:"<strong>נשוא</strong>: <em>הסבירה</em> — הפעולה שהנושא מבצע. <strong>נושא</strong>: <em>המורה</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"הרכבת הגיעה לתחנה המרכזית בדיוק בזמן.",
+   task:'מה <span>הנושא</span> במשפט?',
+   choices:['הרכבת','הגיעה','התחנה המרכזית'],
+   a:'הרכבת',
+   exp:"<strong>נושא</strong>: <em>הרכבת</em>. <strong>נשוא</strong>: <em>הגיעה</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"השמש שקעה לאט מאחורי ההרים הגבוהים.",
+   task:'מה <span>הנשוא</span> במשפט?',
+   choices:['השמש','שקעה','ההרים הגבוהים'],
+   a:'שקעה',
+   exp:"<strong>נשוא</strong>: <em>שקעה</em>. <strong>נושא</strong>: <em>השמש</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"הורים רבים מברכים על המהלך כי הוא מדגיש את הצורך בהגנה על ילדים.",
+   task:'מה <span>הנושא</span> של הפסוקית העיקרית?',
+   choices:['הורים רבים','מברכים','הוא'],
+   a:'הורים רבים',
+   exp:"<strong>נושא</strong> (פסוקית עיקרית): <em>הורים רבים</em>. <strong>נשוא</strong>: <em>מברכים</em>. 'הוא' הוא נושא הפסוקית התלויה."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"חברת מטא הקפיאה חשבונות, אבל מומחים מכל העולם מזהירים.",
+   task:'מה <span>הנשוא</span> של איבר א?',
+   choices:['חברת מטא','הקפיאה','מומחים'],
+   a:'הקפיאה',
+   exp:"<strong>נשוא</strong> (איבר א): <em>הקפיאה</em>. <strong>נושא</strong> (איבר א): <em>חברת מטא</em>. 'מזהירים' הוא נשוא איבר ב."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"הצוות הרפואי עבד קשה לאורך כל הלילה.",
+   task:'מה <span>הנושא</span> במשפט?',
+   choices:['הצוות הרפואי','עבד','הלילה'],
+   a:'הצוות הרפואי',
+   exp:"<strong>נושא</strong>: <em>הצוות הרפואי</em>. <strong>נשוא</strong>: <em>עבד</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"אמא בישלה מרק עוף טעים לארוחת הערב.",
+   task:'מה <span>הנשוא</span> במשפט?',
+   choices:['אמא','בישלה','מרק עוף'],
+   a:'בישלה',
+   exp:"<strong>נשוא</strong>: <em>בישלה</em>. <strong>נושא</strong>: <em>אמא</em>."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"אוסטרליה הוכרזה כמדינה הראשונה בעולם אשר חוסמת רשתות חברתיות.",
+   task:'מה <span>הנושא</span> במשפט?',
+   choices:['אוסטרליה','הוכרזה','המדינה הראשונה'],
+   a:'אוסטרליה',
+   exp:"<strong>נושא</strong>: <em>אוסטרליה</em>. <strong>נשוא</strong>: <em>הוכרזה</em> (פועל סביל)."},
+
+  {c:'N',ex:'נושא ונשוא',sentence:"כולם יצאו להפסקה כאשר הצלצול נשמע.",
+   task:'מה <span>הנשוא</span> של הפסוקית העיקרית?',
+   choices:['כולם','יצאו','נשמע'],
+   a:'יצאו',
+   exp:"<strong>נשוא</strong> (פסוקית עיקרית): <em>יצאו</em>. <strong>נושא</strong>: <em>כולם</em>. 'נשמע' הוא נשוא הפסוקית התלויה."},
 ];
 
 // ══════════════════════════════════════════════════════
@@ -713,11 +856,14 @@ function loadQuestion(){
     $('q-sentence-wrap').style.display='none'; $('q-word-wrap').style.display='block';
     $('q-word-ctx').textContent=q.ctx||''; $('q-word').textContent=q.word||'';
   }
-  $('task-line').innerHTML=cfg.task;
+  $('task-line').innerHTML = q.task || cfg.task;
 
   // Build choices (hidden until answering)
   const ch=$('choices'); ch.style.opacity='0'; ch.style.pointerEvents='none'; ch.innerHTML='';
-  shuffle([...cfg.choices]).forEach(opt=>{
+  const choiceList = (q.choices && q.choices.length) ? q.choices : cfg.choices;
+  const isLong = choiceList.some(c => c.length > 20);
+  ch.className = 'choices' + (isLong ? ' long-choices' : '');
+  shuffle([...choiceList]).forEach(opt=>{
     const btn=document.createElement('button');
     btn.className='choice-btn'; btn.textContent=opt;
     btn.onclick=()=>handleAnswer(opt,btn);
