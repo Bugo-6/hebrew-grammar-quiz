@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 תחרות עברית – לשניים</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --p1: #a855f7;
+  --p2: #f97316;
+  --bg: #0d0d1a;
+  --card: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.12);
+}
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  color: #fff;
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+/* ── START ── */
+#start-screen {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 22px; text-align: center; max-width: 520px;
+}
+.start-logo { font-size: 3.5rem; }
+.start-title {
+  font-size: 2rem; font-weight: 900;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+/* mode buttons */
+.mode-row { display: flex; gap: 14px; justify-content: center; }
+.mode-btn {
+  flex: 1; max-width: 200px;
+  padding: 16px 10px; border-radius: 16px; border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05); color: #888;
+  font-size: 1rem; font-weight: bold; font-family: inherit; cursor: pointer;
+  transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.mode-btn .m-icon { font-size: 2rem; }
+.mode-btn .m-lbl  { font-size: 0.85rem; }
+.mode-btn:hover   { border-color: #555; color: #ccc; background: rgba(255,255,255,0.09); }
+.mode-btn.active-single { border-color: var(--p1); color: var(--p1); background: rgba(168,85,247,0.12); }
+.mode-btn.active-multi  { border-color: var(--p2); color: var(--p2); background: rgba(249,115,22,0.12); }
+
+.name-row { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; justify-content: center; }
+.name-box { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.name-box label { font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; }
+.name-box.p1 label { color: var(--p1); }
+.name-box.p2 label { color: var(--p2); }
+.name-box input {
+  padding: 11px 18px; border-radius: 12px; border: 2px solid;
+  background: rgba(255,255,255,0.05); color: #fff;
+  font-size: 1.1rem; font-family: inherit; text-align: center;
+  width: 170px; outline: none;
+}
+.name-box.p1 input { border-color: var(--p1); }
+.name-box.p2 input { border-color: var(--p2); }
+.vs-badge {
+  font-size: 1.4rem; font-weight: 900; color: #444;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  display: flex; align-items: center; justify-content: center;
+}
+.start-btn {
+  padding: 15px 52px; font-size: 1.15rem; font-weight: bold;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+  color: #fff; border: none; border-radius: 14px; cursor: pointer;
+  font-family: inherit; transition: transform 0.2s;
+}
+.start-btn:hover { transform: scale(1.05); }
+.start-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+
+/* ── GAME ── */
+#game-screen {
+  display: none; flex-direction: column; align-items: center;
+  width: 100%; max-width: 720px; gap: 20px;
+}
+
+/* Score bar */
+.score-bar {
+  width: 100%; display: flex; align-items: center;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; overflow: hidden;
+}
+.score-block {
+  flex: 1; padding: 14px 20px; text-align: center;
+  transition: background 0.3s;
+}
+.score-block.p1 { background: rgba(168,85,247,0.1); border-left: 1px solid var(--border); }
+.score-block.p2 { background: rgba(249,115,22,0.1); border-right: 1px solid var(--border); }
+.score-block.active-p1 { background: rgba(168,85,247,0.28); }
+.score-block.active-p2 { background: rgba(249,115,22,0.28); }
+.s-name { font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; opacity: 0.8; }
+.score-block.p1 .s-name { color: var(--p1); }
+.score-block.p2 .s-name { color: var(--p2); }
+.s-pts  { font-size: 2rem; font-weight: 900; }
+.score-block.p1 .s-pts { color: var(--p1); }
+.score-block.p2 .s-pts { color: var(--p2); }
+.score-mid {
+  padding: 10px 18px; text-align: center; min-width: 110px; flex-shrink: 0;
+}
+.q-counter { font-size: 0.78rem; color: #666; }
+.timer-wrap { position: relative; width: 42px; height: 42px; margin: 4px auto 0; }
+.timer-wrap svg { transform: rotate(-90deg); }
+.timer-bg  { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:4; }
+.timer-arc { fill:none; stroke:#00e676; stroke-width:4; stroke-linecap:round;
+  stroke-dasharray:113; stroke-dashoffset:0; transition: stroke-dashoffset 1s linear, stroke 0.5s; }
+.timer-num {
+  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+  font-size:0.88rem; font-weight:bold; color:#00e676;
+}
+
+/* Spinner */
+.spinner-box {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 20px; text-align: center;
+}
+.spinner-label { font-size: 0.85rem; color: #666; margin-bottom: 12px; }
+.spinner-names {
+  display: flex; gap: 14px; justify-content: center; align-items: center;
+}
+.spin-name {
+  flex: 1; max-width: 200px; padding: 14px; border-radius: 12px;
+  font-size: 1.2rem; font-weight: bold; border: 2px solid;
+  transition: all 0.12s; opacity: 0.25;
+}
+.spin-name.p1 { color: var(--p1); border-color: var(--p1); }
+.spin-name.p2 { color: var(--p2); border-color: var(--p2); }
+.spin-name.lit-p1 { opacity: 1; background: rgba(168,85,247,0.2); box-shadow: 0 0 18px rgba(168,85,247,0.5); }
+.spin-name.lit-p2 { opacity: 1; background: rgba(249,115,22,0.2);  box-shadow: 0 0 18px rgba(249,115,22,0.5); }
+.spin-name.chosen-p1 { opacity: 1; background: rgba(168,85,247,0.25); box-shadow: 0 0 28px rgba(168,85,247,0.6); transform: scale(1.06); }
+.spin-name.chosen-p2 { opacity: 1; background: rgba(249,115,22,0.25);  box-shadow: 0 0 28px rgba(249,115,22,0.6);  transform: scale(1.06); }
+.spin-arrow { font-size: 1.3rem; color: #555; }
+
+/* Question card */
+.q-card {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 14px;
+}
+.cat-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cat-badge {
+  padding: 3px 13px; border-radius: 20px; font-size: 0.73rem; font-weight: bold;
+  border: 1px solid; color: #7dd3fc; border-color: #7dd3fc; background: rgba(125,211,252,0.1);
+}
+.cat-badge.wf { color: #86efac; border-color: #86efac; background: rgba(134,239,172,0.1); }
+.cat-badge.fn { color: #fca5a5; border-color: #fca5a5; background: rgba(252,165,165,0.1); }
+.ex-tag { font-size: 0.72rem; color: #555; }
+
+.q-sentence {
+  font-size: 1.13rem; line-height: 1.8; color: #e0e0f8;
+  background: rgba(255,255,255,0.04);
+  border-right: 4px solid #ffd200;
+  padding: 11px 15px; border-radius: 0 10px 10px 0;
+}
+.q-word-ctx { font-size: 0.92rem; color: #aaa; text-align: center; }
+.q-word     { font-size: 2rem; font-weight: 900; color: #ffd200; text-align: center; letter-spacing: 3px; }
+.task-line  { font-size: 0.82rem; color: #666; }
+.task-line span { color: #ffd200; font-weight: bold; }
+
+/* Choices */
+.choices {
+  display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  transition: opacity 0.3s;
+}
+.choice-btn {
+  flex: 1; min-width: 110px;
+  padding: 12px 14px; font-size: 0.95rem; font-weight: bold;
+  border: 2px solid rgba(255,255,255,0.18); border-radius: 12px;
+  background: rgba(255,255,255,0.06); color: #fff;
+  cursor: pointer; font-family: inherit; transition: all 0.15s;
+}
+.choice-btn:hover:not(:disabled) { transform: translateY(-2px); background: rgba(255,255,255,0.14); border-color: #ffd200; }
+.choice-btn:disabled { cursor: default; }
+.choice-btn.correct { background: rgba(0,230,118,0.22); border-color: #00e676; color: #00e676; transform: scale(1.04); }
+.choice-btn.wrong   { background: rgba(255,82,82,0.22);  border-color: #ff5252; color: #ff5252; }
+.choice-btn.reveal  { background: rgba(0,230,118,0.1);   border-color: #00e676; color: #00e676; }
+
+/* Status */
+.status-msg {
+  font-size: 1rem; font-weight: bold; text-align: center;
+  min-height: 28px; color: #ccc; animation: fadeIn 0.3s;
+}
+
+/* Pass banner */
+.pass-banner {
+  width: 100%; padding: 14px; border-radius: 14px; text-align: center;
+  font-size: 1.1rem; font-weight: bold;
+  background: rgba(255,215,0,0.1); border: 1px solid #ffd200; color: #ffd200;
+  animation: popIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  display: none;
+}
+
+/* ── END ── */
+#end-screen {
+  display: none; flex-direction: column; align-items: center;
+  gap: 22px; text-align: center; max-width: 480px;
+}
+.end-trophy { font-size: 5rem; animation: bounce 1s ease-in-out infinite; }
+.end-winner { font-size: 2rem; font-weight: 900;
+  background: linear-gradient(90deg, #ffd200, #ff6b00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.end-sub { color: #777; font-size: 0.95rem; }
+.end-scores { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+.end-box {
+  padding: 18px 32px; border-radius: 14px; text-align: center; border: 2px solid; min-width: 150px;
+}
+.end-box.p1 { border-color: var(--p1); background: rgba(168,85,247,0.1); }
+.end-box.p2 { border-color: var(--p2); background: rgba(249,115,22,0.1); }
+.end-box .en { font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; opacity: 0.7; }
+.end-box.p1 .en { color: var(--p1); }
+.end-box.p2 .en { color: var(--p2); }
+.end-box .ep { font-size: 2.6rem; font-weight: 900; }
+.end-box.p1 .ep { color: var(--p1); }
+.end-box.p2 .ep { color: var(--p2); }
+.end-box .el { font-size: 0.75rem; color: #555; }
+.end-btn {
+  padding: 14px 44px; font-size: 1.05rem; font-weight: bold;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+  color: #fff; border: none; border-radius: 13px; cursor: pointer; font-family: inherit;
+  transition: transform 0.2s;
+}
+.end-btn:hover { transform: scale(1.05); }
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+@keyframes popIn  { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.hw { background:rgba(255,215,0,0.22); border-radius:4px; padding:1px 5px; color:#ffd200; font-weight:bold; }
+</style>
+</head>
+<body>
+
+<!-- ══ START ══ -->
+<div id="start-screen">
+  <div class="start-logo">🎮</div>
+  <div class="start-title">תחרות עברית – שכבה ט'</div>
+  <p style="color:#666;font-size:0.88rem;">40 שאלות | בחר מצב משחק</p>
+
+  <div class="mode-row">
+    <button class="mode-btn" id="btn-single" onclick="setMode('single')">
+      <span class="m-icon">👤</span>
+      <span class="m-lbl">שחקן יחיד</span>
+    </button>
+    <button class="mode-btn" id="btn-multi" onclick="setMode('multi')">
+      <span class="m-icon">🎮</span>
+      <span class="m-lbl">שני שחקנים</span>
+    </button>
+  </div>
+
+  <div class="name-row">
+    <div class="name-box p1">
+      <label id="p1-label">שם</label>
+      <input id="p1-input" value="שחקן 1" maxlength="14"/>
+    </div>
+    <div class="vs-badge" id="vs-badge" style="display:none">VS</div>
+    <div class="name-box p2" id="p2-box" style="display:none">
+      <label>שחקן 2</label>
+      <input id="p2-input" value="שחקן 2" maxlength="14"/>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn" onclick="startGame()" disabled>▶ התחל!</button>
+</div>
+
+<!-- ══ GAME ══ -->
+<div id="game-screen">
+
+  <!-- Score bar -->
+  <div class="score-bar">
+    <div class="score-block p1" id="sb1">
+      <div class="s-name" id="p1-name-top">שחקן 1</div>
+      <div class="s-pts"  id="p1-pts">0</div>
+    </div>
+    <div class="score-mid">
+      <div class="q-counter" id="q-counter">1 / 42</div>
+      <div class="timer-wrap" id="timer-wrap" style="opacity:0">
+        <svg width="42" height="42" viewBox="0 0 42 42">
+          <circle class="timer-bg" cx="21" cy="21" r="17"/>
+          <circle class="timer-arc" id="timer-arc" cx="21" cy="21" r="17"/>
+        </svg>
+        <div class="timer-num" id="timer-num">10</div>
+      </div>
+    </div>
+    <div class="score-block p2" id="sb2">
+      <div class="s-name" id="p2-name-top">שחקן 2</div>
+      <div class="s-pts"  id="p2-pts">0</div>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div class="spinner-box" id="spinner-box">
+    <div class="spinner-label" id="spin-label">🎲 מי עונה על השאלה?</div>
+    <div class="spinner-names">
+      <div class="spin-name p1" id="sn1">שחקן 1</div>
+      <div class="spin-arrow">⟷</div>
+      <div class="spin-name p2" id="sn2">שחקן 2</div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-msg" id="status-msg"></div>
+
+  <!-- Question -->
+  <div class="q-card">
+    <div class="cat-row">
+      <span class="cat-badge" id="cat-badge">סוגי משפטים</span>
+      <span class="ex-tag"    id="ex-tag">תרגיל 1</span>
+    </div>
+    <div id="q-sentence-wrap">
+      <div class="q-sentence" id="q-sentence"></div>
+    </div>
+    <div id="q-word-wrap" style="display:none">
+      <div class="q-word-ctx" id="q-word-ctx"></div>
+      <div class="q-word"     id="q-word"></div>
+    </div>
+    <div class="task-line" id="task-line"></div>
+    <div class="choices" id="choices" style="opacity:0;pointer-events:none;"></div>
+  </div>
+
+</div>
+
+<!-- ══ END ══ -->
+<div id="end-screen">
+  <div class="end-trophy">🏆</div>
+  <div class="end-winner" id="end-winner">שחקן 1 מנצח!</div>
+  <div class="end-sub"    id="end-sub"></div>
+  <div class="end-scores" id="end-scores">
+    <div class="end-box p1">
+      <div class="en" id="end-n1">שחקן 1</div>
+      <div class="ep" id="end-p1">0</div>
+      <div class="el">נקודות</div>
+    </div>
+    <div class="end-box p2" id="end-box2">
+      <div class="en" id="end-n2">שחקן 2</div>
+      <div class="ep" id="end-p2">0</div>
+      <div class="el">נקודות</div>
+    </div>
+  </div>
+  <button class="end-btn" onclick="goHome()">🔄 משחק חדש</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// QUESTIONS
+// ══════════════════════════════════════════════════════
+const CAT = {
+  S:{ label:'סוגי משפטים',      cls:'',   task:'מהו <span>סוג המשפט</span>?',        choices:['פשוט','מחובר','מורכב'] },
+  W:{ label:'שם פועל / שם פעולה', cls:'wf', task:'מהי <span>צורת המילה</span>?',      choices:['פועל','שם פועל','שם פעולה'] },
+  F:{ label:'תפקיד מילה',        cls:'fn', task:'מה <span>תפקיד המילה</span> במשפט?', choices:['פועל','שם פועל','שם תואר'] },
+};
+
+const ALL_Q = [
+
+  // ══ סוגי משפטים – פשוט ══════════════════════════════
+  {c:'S',ex:'סוגי משפטים',sentence:"הכלב רץ מהר בפארק הקרוב לבית.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>הכלב</em>, נשוא — <em>רץ</em>. אין מילות קישור ואין פסוקית."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"המורה הסבירה את החומר החדש בסבלנות רבה.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>המורה</em>, נשוא — <em>הסבירה</em>. משפט בעל נושא ונשוא אחד בלבד."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הרכבת הגיעה לתחנה המרכזית בדיוק בזמן.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>הרכבת</em>, נשוא — <em>הגיעה</em>. אין פסוקיות ואין מילות קישור."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"אמא בישלה מרק עוף טעים לארוחת הערב.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>אמא</em>, נשוא — <em>בישלה</em>. אין מילות קישור."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"השמש שקעה לאט מאחורי ההרים הגבוהים.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>השמש</em>, נשוא — <em>שקעה</em>. אין פסוקית."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הצוות הרפואי עבד קשה לאורך כל הלילה.",
+   a:"פשוט",exp:"משפט <strong>פשוט</strong>: נושא — <em>הצוות הרפואי</em>, נשוא — <em>עבד</em>. משפט פשוט ללא פסוקיות."},
+
+  // ══ סוגי משפטים – מחובר ══════════════════════════════
+  {c:'S',ex:'סוגי משפטים',sentence:"דנה למדה קשה למבחן, אולם היא לא הצליחה לישון לפניו.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: שני איברים שווים מחוברים במילת חיבור — <span class='hw'>אולם</span> (ניגוד)."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הגשם ירד בחוזקה כל הלילה, ולכן הטיול השנתי בוטל.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>ולכן</span> (קשר סיבה–תוצאה). שני איברים שווים."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"יוסי אוהב כדורגל, אבל אחיו הגדול מעדיף כדורסל.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>אבל</span> (ניגוד). נושא 1: <em>יוסי</em>, נושא 2: <em>אחיו הגדול</em>."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"התלמידים סיימו את הפרויקט בזמן, עם זאת המורה לא היה מרוצה.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>עם זאת</span> (ניגוד/הסתייגות). שני איברים שווים."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הסרט היה ארוך מאוד, למרות זאת כל הקהל נשאר עד הסוף.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>למרות זאת</span> (ניגוד). שני איברים עצמאיים."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הטמפרטורה ירדה בחדות בשעות הלילה, ולפיכך ביטלנו את האימון.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>ולפיכך</span> (קשר סיבה–תוצאה)."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"שרה אוהבת לקרוא ספרים, וכן היא כותבת שירים בזמנה החופשי.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>וכן</span> (הוספה). שני איברים שווים."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"ניסינו להגיע לאירוע בזמן, אך הפקק הארוך עיכב אותנו.",
+   a:"מחובר",exp:"משפט <strong>מחובר</strong>: מילת חיבור — <span class='hw'>אך</span> (ניגוד). שני איברים שווים."},
+
+  // ══ סוגי משפטים – מורכב ══════════════════════════════
+  {c:'S',ex:'סוגי משפטים',sentence:"המורה אמרה כי המבחן יתקיים ביום חמישי הקרוב.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>כי</span>. פסוקית מושא (דיבור עקיף)."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"התלמיד שכתב את הדו\"ח הארוך קיבל ציון מצוין.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>ש</span>. פסוקית שמנית המתארת את 'התלמיד'."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"אם תלמד כל יום בצורה מסודרת, תצליח במבחן.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>אם</span>. פסוקית תנאי."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הם לא הבינו מדוע השיעור בוטל פתאום ללא הודעה.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>מדוע</span>. פסוקית שאלה עקיפה."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"אף שירד גשם שוטף, הם המשיכו לשחק בחוץ בשמחה.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>אף ש</span>. פסוקית ויתור."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"כאשר הצלצול נשמע בפעם השלישית, כולם יצאו להפסקה.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>כאשר</span>. פסוקית זמן."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"היא קראה ספר מרתק בזמן שאחיה צפה בטלוויזיה.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>בזמן ש</span>. פסוקית זמן המקבילה לפסוקית הראשית."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הם הכינו עוגה גדולה כדי שיוכלו לחגוג את יום ההולדת.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>כדי ש</span>. פסוקית מטרה."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הוא מסר את הדו\"ח למורה לפני שהמועד האחרון הגיע.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>לפני ש</span>. פסוקית זמן."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הילדה אמרה שהיא רוצה ללמוד לנגן בפסנתר.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>ש</span>. פסוקית מושא (דיבור עקיף)."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"למרות שהיה קר מאוד בחוץ, הם לא לבשו מעיל.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>למרות ש</span>. פסוקית ויתור."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"המנהלת שאלה מי היה אחראי על הסדר בפעילות.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>מי</span>. פסוקית שאלה עקיפה."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הספר אשר כתבה הסופרת הצעירה הפך לרב מכר.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>אשר</span>. פסוקית שמנית המתארת את 'הספר'."},
+
+  {c:'S',ex:'סוגי משפטים',sentence:"הוא ניגש לעזור לשכנה משום שידע שהיא זקוקה לעזרה.",
+   a:"מורכב",exp:"משפט <strong>מורכב</strong>: מילת שעבוד — <span class='hw'>משום ש</span>. פסוקית סיבה."},
+
+  // ══ שם פועל / שם פעולה / פועל ══════════════════════════
+  {c:'W',ex:'צורות מילים',word:"לרוץ",ctx:"מהי צורת המילה?",
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'לרוץ' היא צורת ה-infinitive (ל + שורש). שם הפעולה: <em>ריצה</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"ריצה",ctx:"מהי צורת המילה?",
+   a:"שם פעולה",exp:"<strong>שם פעולה</strong>: 'ריצה' הוא שם עצם מופשט הנגזר מהפועל. שם הפועל: <em>לרוץ</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"לכתוב",ctx:"מהי צורת המילה?",
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'לכתוב' היא צורת ה-infinitive. שם הפעולה: <em>כתיבה</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"כתיבה",ctx:"מהי צורת המילה?",
+   a:"שם פעולה",exp:"<strong>שם פעולה</strong>: 'כתיבה' הוא שם עצם מופשט. שם הפועל: <em>לכתוב</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"להחליט",ctx:"מהי צורת המילה?",
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'להחליט' היא צורת ה-infinitive. שם הפעולה: <em>החלטה</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"החלטה",ctx:"מהי צורת המילה?",
+   a:"שם פעולה",exp:"<strong>שם פעולה</strong>: 'החלטה' הוא שם עצם מופשט. שם הפועל: <em>להחליט</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"לנסוע",ctx:"מהי צורת המילה?",
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'לנסוע' היא צורת ה-infinitive. שם הפעולה: <em>נסיעה</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"נסיעה",ctx:"מהי צורת המילה?",
+   a:"שם פעולה",exp:"<strong>שם פעולה</strong>: 'נסיעה' הוא שם עצם מופשט. שם הפועל: <em>לנסוע</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"לצייר",ctx:"מהי צורת המילה?",
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'לצייר' היא צורת ה-infinitive. שם הפעולה: <em>ציור</em>."},
+
+  {c:'W',ex:'צורות מילים',word:"ציור",ctx:"מהי צורת המילה?",
+   a:"שם פעולה",exp:"<strong>שם פעולה</strong>: 'ציור' הוא שם עצם מופשט. שם הפועל: <em>לצייר</em>."},
+
+  // ══ תפקיד מילה במשפט ════════════════════════════════
+  {c:'F',ex:'תפקיד מילה',word:"רץ",ctx:'במשפט: "הוא רץ כל בוקר בפארק"',
+   a:"פועל",exp:"<strong>פועל</strong>: 'רץ' הוא נשוא המשפט — מבטא את הפעולה שהנושא (הוא) עושה."},
+
+  {c:'F',ex:'תפקיד מילה',word:"הרץ",ctx:'בצירוף: "הרץ המנוסה ניצח בתחרות"',
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'הרץ' (= 'מי שרץ') פועל כשם עצם — הוא נושא המשפט ולא נשוא."},
+
+  {c:'F',ex:'תפקיד מילה',word:"נעולה",ctx:'בצירוף: "הדלת הנעולה לא נפתחה"',
+   a:"שם תואר",exp:"<strong>שם תואר</strong>: 'נעולה' מתארת את 'הדלת' — תואר שם (adjective). השווה: 'הדלת נעולה.' — נשוא."},
+
+  {c:'F',ex:'תפקיד מילה',word:"נעולה",ctx:'במשפט: "הדלת נעולה."',
+   a:"פועל",exp:"<strong>פועל</strong>: 'נעולה' הוא נשוא המשפט (פועל סביל). השווה: 'הדלת ה<u>נעולה</u>' — שם תואר."},
+
+  {c:'F',ex:'תפקיד מילה',word:"השרים",ctx:'בצירוף: "השרים במקהלה קיבלו פרס"',
+   a:"שם פועל",exp:"<strong>שם פועל</strong>: 'השרים' (= 'אלה שרים') הוא נושא המשפט — פועל שמשמש כשם עצם."},
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let mode='';           // 'single' | 'multi'
+let p1Name='שחקן 1', p2Name='שחקן 2';
+let p1Pts=0, p2Pts=0;
+let shuffled=[], curIdx=0;
+let activePlayer=0;
+let timerIv=null, timerLeft=0;
+const TIMER=12;
+
+function $(id){return document.getElementById(id);}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+function name(p){return p===1?p1Name:p2Name;}
+
+// ── SOUNDS ──
+function beep(freq,dur){
+  try{const c=new(window.AudioContext||window.webkitAudioContext)();const o=c.createOscillator();const g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=freq;g.gain.setValueAtTime(0.18,c.currentTime);g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);o.start();o.stop(c.currentTime+dur);}catch(e){}
+}
+function sndPick() {beep(600,0.12);setTimeout(()=>beep(800,0.18),130);}
+function sndOk()   {beep(660,0.15);setTimeout(()=>beep(880,0.25),160);}
+function sndWrong(){beep(220,0.3);}
+
+// ── TIMER ──
+function startTimer(onEnd){
+  timerLeft=TIMER; $('timer-wrap').style.opacity='1'; refreshTimer();
+  timerIv=setInterval(()=>{
+    timerLeft--; refreshTimer();
+    if(timerLeft<=0){stopTimer();onEnd();}
+  },1000);
+}
+function stopTimer(){clearInterval(timerIv);timerIv=null;$('timer-wrap').style.opacity='0';}
+function refreshTimer(){
+  const pct=timerLeft/TIMER, c=2*Math.PI*17;
+  $('timer-arc').style.strokeDashoffset=c*(1-pct);
+  const col=timerLeft<=3?'#ff5252':timerLeft<=6?'#ffd200':'#00e676';
+  $('timer-arc').style.stroke=col;
+  $('timer-num').textContent=timerLeft; $('timer-num').style.color=col;
+}
+
+// ══════════════════════════════════════════════════════
+// MODE SELECTION
+// ══════════════════════════════════════════════════════
+function setMode(m){
+  mode=m;
+  $('btn-single').className='mode-btn'+(m==='single'?' active-single':'');
+  $('btn-multi').className ='mode-btn'+(m==='multi' ?' active-multi':'');
+  const isMulti=m==='multi';
+  $('p2-box').style.display   =isMulti?'flex':'none';
+  $('vs-badge').style.display =isMulti?'flex':'none';
+  $('p1-label').textContent   =isMulti?'שחקן 1':'שמך';
+  $('start-btn').disabled=false;
+}
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+function startGame(){
+  if(!mode) return;
+  p1Name=$('p1-input').value.trim()||'שחקן 1';
+  p2Name=$('p2-input').value.trim()||'שחקן 2';
+  p1Pts=p2Pts=0; curIdx=0;
+  shuffled=shuffle(ALL_Q);
+
+  $('p1-name-top').textContent=p1Name;
+  $('p2-name-top').textContent=p2Name;
+  $('sn1').textContent=p1Name;
+  $('sn2').textContent=p2Name;
+
+  // Show/hide p2 score block
+  $('sb2').style.display=mode==='multi'?'':'none';
+  // Show/hide spinner
+  $('spinner-box').style.display=mode==='multi'?'':'none';
+
+  $('start-screen').style.display='none';
+  $('game-screen').style.display='flex';
+  loadQuestion();
+}
+
+// ══════════════════════════════════════════════════════
+// LOAD QUESTION
+// ══════════════════════════════════════════════════════
+function loadQuestion(){
+  stopTimer();
+  const q=shuffled[curIdx];
+  const cfg=CAT[q.c];
+
+  $('q-counter').textContent=`${curIdx+1} / ${ALL_Q.length}`;
+  $('p1-pts').textContent=p1Pts; $('p2-pts').textContent=p2Pts;
+  $('sb1').className='score-block p1';
+  $('sb2').className='score-block p2';
+
+  const b=$('cat-badge'); b.textContent=cfg.label; b.className='cat-badge '+cfg.cls;
+  $('ex-tag').textContent=q.ex;
+
+  if(q.sentence){
+    $('q-sentence-wrap').style.display='block'; $('q-word-wrap').style.display='none';
+    $('q-sentence').textContent=q.sentence;
+  } else {
+    $('q-sentence-wrap').style.display='none'; $('q-word-wrap').style.display='block';
+    $('q-word-ctx').textContent=q.ctx||''; $('q-word').textContent=q.word||'';
+  }
+  $('task-line').innerHTML=cfg.task;
+
+  // Build choices (hidden until answering)
+  const ch=$('choices'); ch.style.opacity='0'; ch.style.pointerEvents='none'; ch.innerHTML='';
+  shuffle([...cfg.choices]).forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='choice-btn'; btn.textContent=opt;
+    btn.onclick=()=>handleAnswer(opt,btn);
+    ch.appendChild(btn);
+  });
+
+  setStatus('');
+
+  if(mode==='single'){
+    beginAnswering(1);
+  } else {
+    spinAndPick(Math.random()<0.5?1:2);
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// SPINNER (multiplayer only)
+// ══════════════════════════════════════════════════════
+function spinAndPick(finalPlayer){
+  $('spin-label').textContent='🎲 מי עונה על השאלה?';
+  const sn1=$('sn1'), sn2=$('sn2');
+  sn1.className='spin-name p1'; sn2.className='spin-name p2';
+  let flips=0; let cur=1;
+  const iv=setInterval(()=>{
+    flips++; cur=cur===1?2:1;
+    sn1.className='spin-name p1'+(cur===1?' lit-p1':'');
+    sn2.className='spin-name p2'+(cur===2?' lit-p2':'');
+    if(flips>=18){
+      clearInterval(iv);
+      sn1.className='spin-name p1'+(finalPlayer===1?' chosen-p1':'');
+      sn2.className='spin-name p2'+(finalPlayer===2?' chosen-p2':'');
+      $('spin-label').textContent=`🎯 ${name(finalPlayer)} עונה!`;
+      sndPick();
+      setTimeout(()=>beginAnswering(finalPlayer), 500);
+    }
+  },80);
+}
+
+// ══════════════════════════════════════════════════════
+// BEGIN ANSWERING
+// ══════════════════════════════════════════════════════
+function beginAnswering(player){
+  activePlayer=player;
+  if(mode==='multi'){
+    $('sb1').className='score-block p1'+(player===1?' active-p1':'');
+    $('sb2').className='score-block p2'+(player===2?' active-p2':'');
+    setStatus(`🖊️ ${name(player)} — בחר תשובה:`);
+  } else {
+    setStatus('🖊️ בחר תשובה:');
+  }
+  const ch=$('choices'); ch.style.opacity='1'; ch.style.pointerEvents='auto';
+  startTimer(()=>handleAnswer('__timeout__',null));
+}
+
+// ══════════════════════════════════════════════════════
+// ANSWER  –  wrong → other gets point (multi) | no point (single)
+// ══════════════════════════════════════════════════════
+function handleAnswer(chosen, btn){
+  stopTimer();
+  const q=shuffled[curIdx];
+  const player=activePlayer;
+  const isOk=chosen===q.a;
+
+  document.querySelectorAll('.choice-btn').forEach(b=>{
+    b.disabled=true;
+    if(b.textContent===q.a) b.classList.add(isOk?'correct':'reveal');
+  });
+  if(btn&&!isOk) btn.classList.add('wrong');
+
+  if(isOk){
+    if(player===1) p1Pts++; else p2Pts++;
+    $('p1-pts').textContent=p1Pts; $('p2-pts').textContent=p2Pts;
+    sndOk();
+    const msg=mode==='single'
+      ? `✅ נכון! +1`
+      : `✅ ${name(player)} צדק/ה! +1`;
+    setStatus(msg+'<br><span style="font-size:0.78rem;color:#86efac;">'+q.exp+'</span>');
+  } else {
+    sndWrong();
+    if(mode==='multi'){
+      const other=player===1?2:1;
+      if(other===1) p1Pts++; else p2Pts++;
+      $('p1-pts').textContent=p1Pts; $('p2-pts').textContent=p2Pts;
+      const reason=chosen==='__timeout__'?'פג הזמן':'תשובה שגויה';
+      setStatus(`❌ ${name(player)} — ${reason}! ${name(other)} מקבל/ת נקודה 🎁<br><span style="font-size:0.78rem;color:#fca5a5;">${q.exp}</span>`);
+    } else {
+      const reason=chosen==='__timeout__'?'⏰ פג הזמן!':'❌ שגוי!';
+      setStatus(reason+'<br><span style="font-size:0.78rem;color:#fca5a5;">'+q.exp+'</span>');
+    }
+  }
+
+  setTimeout(nextQ, 2200);
+}
+
+// ══════════════════════════════════════════════════════
+// NEXT
+// ══════════════════════════════════════════════════════
+function nextQ(){
+  curIdx++;
+  if(curIdx>=shuffled.length){showEnd();return;}
+  loadQuestion();
+}
+
+function setStatus(msg){$('status-msg').innerHTML=msg;}
+
+// ══════════════════════════════════════════════════════
+// END
+// ══════════════════════════════════════════════════════
+function showEnd(){
+  $('game-screen').style.display='none';
+  const e=$('end-screen'); e.style.display='flex';
+  $('end-n1').textContent=p1Name; $('end-p1').textContent=p1Pts;
+
+  if(mode==='single'){
+    $('end-box2').style.display='none';
+    const pct=Math.round(p1Pts/ALL_Q.length*100);
+    const trophy=pct===100?'🏆':pct>=80?'🥇':pct>=60?'🥈':pct>=40?'🥉':'📚';
+    $('end-screen').querySelector('.end-trophy').textContent=trophy;
+    $('end-winner').textContent=`${p1Name} סיים/ה!`;
+    $('end-sub').textContent=`${p1Pts} מתוך ${ALL_Q.length} נכון — ${pct}%`;
+  } else {
+    $('end-box2').style.display='';
+    $('end-n2').textContent=p2Name; $('end-p2').textContent=p2Pts;
+    let w,s;
+    if(p1Pts>p2Pts)     {w=`🏆 ${p1Name} מנצח/ת!`;s=`${p1Pts} מול ${p2Pts}`;}
+    else if(p2Pts>p1Pts){w=`🏆 ${p2Name} מנצח/ת!`;s=`${p2Pts} מול ${p1Pts}`;}
+    else                {w='🤝 תיקו!';s=`${p1Pts} נקודות לכל אחד`;}
+    $('end-winner').textContent=w; $('end-sub').textContent=s;
+  }
+}
+
+function goHome(){
+  mode='';
+  $('btn-single').className='mode-btn';
+  $('btn-multi').className='mode-btn';
+  $('start-btn').disabled=true;
+  $('p2-box').style.display='none';
+  $('vs-badge').style.display='none';
+  $('end-screen').style.display='none';
+  $('start-screen').style.display='flex';
+}
+</script>
+</body>
+</html>
