@@ -107,15 +107,6 @@ body {
   padding: 10px 18px; text-align: center; min-width: 110px; flex-shrink: 0;
 }
 .q-counter { font-size: 0.78rem; color: #666; }
-.timer-wrap { position: relative; width: 42px; height: 42px; margin: 4px auto 0; }
-.timer-wrap svg { transform: rotate(-90deg); }
-.timer-bg  { fill:none; stroke:rgba(255,255,255,0.08); stroke-width:4; }
-.timer-arc { fill:none; stroke:#00e676; stroke-width:4; stroke-linecap:round;
-  stroke-dasharray:113; stroke-dashoffset:0; transition: stroke-dashoffset 1s linear, stroke 0.5s; }
-.timer-num {
-  position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-  font-size:0.88rem; font-weight:bold; color:#00e676;
-}
 
 /* Spinner */
 .spinner-box {
@@ -285,13 +276,6 @@ body {
     </div>
     <div class="score-mid">
       <div class="q-counter" id="q-counter">1 / 42</div>
-      <div class="timer-wrap" id="timer-wrap" style="opacity:0">
-        <svg width="42" height="42" viewBox="0 0 42 42">
-          <circle class="timer-bg" cx="21" cy="21" r="17"/>
-          <circle class="timer-arc" id="timer-arc" cx="21" cy="21" r="17"/>
-        </svg>
-        <div class="timer-num" id="timer-num">10</div>
-      </div>
     </div>
     <div class="score-block p2" id="sb2">
       <div class="s-name" id="p2-name-top">שחקן 2</div>
@@ -762,8 +746,6 @@ let p1Name='שחקן 1', p2Name='שחקן 2';
 let p1Pts=0, p2Pts=0;
 let shuffled=[], curIdx=0;
 let activePlayer=0;
-let timerIv=null, timerLeft=0;
-const TIMER=12;
 
 function $(id){return document.getElementById(id);}
 function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
@@ -777,22 +759,6 @@ function sndPick() {beep(600,0.12);setTimeout(()=>beep(800,0.18),130);}
 function sndOk()   {beep(660,0.15);setTimeout(()=>beep(880,0.25),160);}
 function sndWrong(){beep(220,0.3);}
 
-// ── TIMER ──
-function startTimer(onEnd){
-  timerLeft=TIMER; $('timer-wrap').style.opacity='1'; refreshTimer();
-  timerIv=setInterval(()=>{
-    timerLeft--; refreshTimer();
-    if(timerLeft<=0){stopTimer();onEnd();}
-  },1000);
-}
-function stopTimer(){clearInterval(timerIv);timerIv=null;$('timer-wrap').style.opacity='0';}
-function refreshTimer(){
-  const pct=timerLeft/TIMER, c=2*Math.PI*17;
-  $('timer-arc').style.strokeDashoffset=c*(1-pct);
-  const col=timerLeft<=3?'#ff5252':timerLeft<=6?'#ffd200':'#00e676';
-  $('timer-arc').style.stroke=col;
-  $('timer-num').textContent=timerLeft; $('timer-num').style.color=col;
-}
 
 // ══════════════════════════════════════════════════════
 // MODE SELECTION
@@ -837,7 +803,6 @@ function startGame(){
 // LOAD QUESTION
 // ══════════════════════════════════════════════════════
 function loadQuestion(){
-  stopTimer();
   const q=shuffled[curIdx];
   const cfg=CAT[q.c];
 
@@ -858,8 +823,10 @@ function loadQuestion(){
   }
   $('task-line').innerHTML = q.task || cfg.task;
 
-  // Build choices (hidden until answering)
-  const ch=$('choices'); ch.style.opacity='0'; ch.style.pointerEvents='none'; ch.innerHTML='';
+  // Build choices — reset instantly (no transition) so old state is never visible
+  const ch=$('choices');
+  ch.style.transition='none';
+  ch.style.opacity='0'; ch.style.pointerEvents='none'; ch.innerHTML='';
   const choiceList = (q.choices && q.choices.length) ? q.choices : cfg.choices;
   const isLong = choiceList.some(c => c.length > 20);
   ch.className = 'choices' + (isLong ? ' long-choices' : '');
@@ -914,15 +881,15 @@ function beginAnswering(player){
   } else {
     setStatus('🖊️ בחר תשובה:');
   }
-  const ch=$('choices'); ch.style.opacity='1'; ch.style.pointerEvents='auto';
-  startTimer(()=>handleAnswer('__timeout__',null));
+  const ch=$('choices');
+  ch.style.transition='opacity 0.25s';
+  ch.style.opacity='1'; ch.style.pointerEvents='auto';
 }
 
 // ══════════════════════════════════════════════════════
 // ANSWER  –  wrong → other gets point (multi) | no point (single)
 // ══════════════════════════════════════════════════════
 function handleAnswer(chosen, btn){
-  stopTimer();
   const q=shuffled[curIdx];
   const player=activePlayer;
   const isOk=chosen===q.a;
@@ -947,11 +914,9 @@ function handleAnswer(chosen, btn){
       const other=player===1?2:1;
       if(other===1) p1Pts++; else p2Pts++;
       $('p1-pts').textContent=p1Pts; $('p2-pts').textContent=p2Pts;
-      const reason=chosen==='__timeout__'?'פג הזמן':'תשובה שגויה';
-      setStatus(`❌ ${name(player)} — ${reason}! ${name(other)} מקבל/ת נקודה 🎁<br><span style="font-size:0.78rem;color:#fca5a5;">${q.exp}</span>`);
+      setStatus(`❌ ${name(player)} — תשובה שגויה! ${name(other)} מקבל/ת נקודה 🎁<br><span style="font-size:0.78rem;color:#fca5a5;">${q.exp}</span>`);
     } else {
-      const reason=chosen==='__timeout__'?'⏰ פג הזמן!':'❌ שגוי!';
-      setStatus(reason+'<br><span style="font-size:0.78rem;color:#fca5a5;">'+q.exp+'</span>');
+      setStatus('❌ שגוי!<br><span style="font-size:0.78rem;color:#fca5a5;">'+q.exp+'</span>');
     }
   }
 
